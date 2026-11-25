@@ -2,49 +2,35 @@
 
 Last reviewed: 2026-11-25
 
-## Current verified state
+## Verified repository state
 
-- The repository default branch is `main`.
-- The repository currently exposes a single root file, `index.html`.
-- The repository language is reported as HTML.
-- The landing page describes an automated SMS/email estimate-follow-up SaaS for Canadian HVAC, plumbing, and electrical contractors.
-- The landing page advertises CAD $199 and $349 monthly plans and links to Stripe Checkout.
-- The page states that account credentials and dedicated Canadian SMS number provisioning are delivered within one business hour.
-- The page describes CSV upload, email forwarding, integrations, scheduled follow-ups, reply handling, and revenue recovery.
-- No application backend, database, authentication, customer dashboard, messaging provider integration, payment webhook, or deployment workflow has been verified in this repository.
-- No end-to-end customer workflow or payment fulfilment has been tested.
+- GitHub Pages hosts the static marketing site and browser workspace.
+- `app.html` supports local estimate records, status tracking, follow-up queue, dashboard totals, editable email/SMS drafts, CSV import/export and business profile settings.
+- Local records are stored in the current browser using localStorage. They do not sync between devices or users.
+- The marketing page contains the two Stripe Payment Links supplied and confirmed by the owner. Their external checkout and charge flow have not been independently tested here.
+- The website explicitly warns that paid fulfilment is not available until onboarding and deliverables are confirmed.
+- A Supabase migration now defines tenant-owned profiles, subscriptions, estimates, consent evidence, suppression records and message audit events with row-level security.
+- A Stripe webhook Edge Function now verifies Stripe signatures, handles checkout/subscription/payment-failure events and records processed event IDs.
+- The Supabase backend is scaffolding only. No Supabase project, credentials, migration execution, function deployment or Stripe webhook endpoint has been configured or verified.
 
-## Launch gate: do not advertise unverified fulfilment
+## Remaining launch gates
 
-Before accepting recurring subscriptions, implement and test:
-
-1. Customer authentication, tenant isolation, and secure account provisioning.
-2. Persistent storage for companies, customers, estimates, consent evidence, messages, and status history.
-3. A messaging provider integration with Canadian number provisioning, delivery status, inbound replies, STOP/HELP handling, and suppression lists.
-4. Email delivery with sender authentication, bounce handling, unsubscribe processing, and suppression lists.
-5. A consent/eligibility record for each recipient, including source, timestamp, purpose, and applicable consent basis.
-6. Import validation and duplicate prevention for uploaded CSV data.
-7. Job/estimate workflow, pause-on-reply behavior, retry controls, audit logs, and revenue reporting.
-8. Stripe subscription checkout configuration, signed webhook verification, entitlement provisioning, cancellation, failed-payment handling, and refund workflow.
-9. Privacy, security, retention, deletion, incident response, and customer support procedures.
-10. End-to-end tests covering signup, import, follow-up, opt-out, inbound reply, approval, cancellation, and payment lifecycle.
+1. Create a separate Supabase project, apply the migration and configure secrets. Do not use Lovable's backend.
+2. Add and test frontend Supabase Auth, account recovery, authenticated session handling and cloud CRUD. Keep local mode clearly identified until connected.
+3. Replace static Payment Link-only onboarding with authenticated Checkout Sessions carrying the signed-in user's UUID as `client_reference_id`. Configure actual Stripe Price IDs and webhook events. Verify subscription activation, renewal, cancellation, failed payment and refunds.
+4. Build a customer consent capture workflow with source, timestamp, purpose and applicable CASL consent basis; enforce suppression before any send.
+5. Integrate a Canadian-capable SMS provider and email provider, including sender verification, delivery/inbound webhooks, STOP/HELP/unsubscribe, retries and suppression.
+6. Implement scheduled follow-up jobs, pause-on-reply, audit history, duplicate-safe CSV import and tenant-isolation tests.
+7. Finalize privacy, retention, deletion, incident response, customer support and terms with qualified Canadian legal review.
+8. Run end-to-end tests against deployed services, including signup, cross-tenant access denial, estimate CRUD, CSV import, consent, opt-out, inbound reply, approval, payment lifecycle and account cancellation.
 
 ## Canadian messaging safeguards
 
-- Do not treat a publicly visible email address as blanket permission for bulk marketing.
-- For commercial electronic messages, document a valid CASL consent basis before sending; include sender identification and a working unsubscribe mechanism.
-- For SMS, obtain and record appropriate consent before sending commercial messages, identify the sender, and support required opt-out handling.
-- Keep customer consent and suppression records. Never re-message a recipient who has opted out unless a valid legal basis permits it.
-- Have Canadian counsel review the actual customer messaging flows and privacy terms before launch.
+- A publicly visible email address is not blanket permission for bulk marketing.
+- Record a valid CASL consent basis before sending commercial electronic messages; include sender identification and a working unsubscribe mechanism.
+- For SMS, obtain and record appropriate consent before sending commercial messages, identify the sender and support opt-out handling.
+- Maintain suppression records and never re-message opted-out recipients unless a valid legal basis permits it.
 
-## Safe go-to-market sequence
+## Release decision
 
-1. Keep the current landing page available for discovery, but do not drive paid traffic or promise immediate automated fulfilment until the product and checkout lifecycle are verified.
-2. Offer a clearly disclosed, manually delivered pilot only if the operator can actually provide the promised service.
-3. Recruit a small number of contractors through referrals, opt-in enquiries, trade communities that permit promotion, and properly qualified one-to-one outreach.
-4. Measure quote recovery, response rate, opt-outs, delivery failures, and customer retention before scaling.
-5. Turn on recurring paid plans only after the launch gates above pass.
-
-## Release evidence
-
-Record test date, environment, test account, expected result, actual result, and evidence for each launch gate. A successful static-page render is not an end-to-end SaaS test.
+**Not production-ready for paid self-serve subscriptions or automatic messaging.** The local browser workspace is usable for manual estimate tracking. Backend schema and webhook code are committed but not deployed. Do not represent subscriptions, cloud storage, automated messaging or customer provisioning as operational until the gates above are tested and signed off.
