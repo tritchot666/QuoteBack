@@ -62,15 +62,8 @@ renderAll();
  function dbToLocal(r){return {id:r.id,customer:r.customer_name,email:r.customer_email||'',phone:r.customer_phone||'',amount:Number(r.amount_cad)||0,job:r.job_description,sent:r.sent_on||'',followUp:r.follow_up_on||'',status:r.status,notes:r.notes||'',updated:r.updated_at};}
  function localToDb(q){return {id:q.id,user_id:currentUser.id,customer_name:q.customer,customer_email:q.email||null,customer_phone:q.phone||null,job_description:q.job,amount_cad:Number(q.amount)||0,sent_on:q.sent||null,follow_up_on:q.followUp||null,status:q.status,notes:q.notes||'',updated_at:new Date().toISOString()};}
  async function refreshCloud(){
-  const localBackup=[...data.quotes];
   const {data:rows,error}=await client.from('estimates').select('*').order('created_at',{ascending:false});
   if(error)throw error;
-  if((rows||[]).length===0&&localBackup.length){
-   const {error:importError}=await client.from('estimates').upsert(localBackup.map(localToDb),{onConflict:'id'});
-   if(importError)throw importError;
-   message('Your existing estimates were copied into your cloud account.');
-   return refreshCloud();
-  }
   data.quotes=(rows||[]).map(dbToLocal);
   const {data:profile}=await client.from('profiles').select('company_name,contact_email').eq('id',currentUser.id).maybeSingle();
   data.business={name:profile?.company_name||'',email:profile?.contact_email||currentUser.email||''};
