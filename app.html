@@ -48,6 +48,25 @@ function exportCSV(){let keys=['customer','email','phone','amount','job','sent',
 function parseCSV(text){let rows=[],row=[],v='',q=false;for(let i=0;i<text.length;i++){let c=text[i];if(q&&c==='"'&&text[i+1]==='"'){v+='"';i++}else if(c==='"')q=!q;else if(c===','&&!q){row.push(v);v=''}else if((c==='\n'||c==='\r')&&!q){if(c==='\r'&&text[i+1]==='\n')i++;row.push(v);if(row.some(x=>x.trim()))rows.push(row);row=[];v=''}else v+=c}row.push(v);if(row.some(x=>x.trim()))rows.push(row);return rows}
 function importCSV(e){let file=e.target.files[0];if(!file)return;let reader=new FileReader();reader.onload=()=>{try{let rows=parseCSV(reader.result),heads=rows.shift().map(x=>x.trim().toLowerCase()),get=(r,k)=>r[heads.indexOf(k)]||'';let imported=rows.map(r=>({id:crypto.randomUUID(),customer:get(r,'customer')||get(r,'customer_name'),email:get(r,'email')||get(r,'customer_email'),phone:get(r,'phone')||get(r,'customer_phone'),amount:Number(get(r,'amount')||0),job:get(r,'job')||get(r,'job_description'),sent:get(r,'sent')||get(r,'sent_date'),followUp:get(r,'followup')||get(r,'follow_up_date'),status:['sent','follow_up','won','lost'].includes(get(r,'status'))?get(r,'status'):'sent',notes:get(r,'notes')||''})).filter(q=>q.customer&&q.job);data.quotes.push(...imported);persist();alert('Imported '+imported.length+' estimates. Check the records for accuracy.')}catch(err){alert('Could not import this CSV. Check the header row and file format.')}e.target.value=''};reader.readAsText(file)}
 function clearData(){if(confirm('This permanently deletes every QuoteBack record and setting saved in this browser. Continue?')){localStorage.removeItem(KEY);data=load();renderAll()}}
+// Reliable delegated controls: keep workspace actions working even if an inline handler is blocked.
+document.addEventListener('click',function(e){
+ const b=e.target.closest('button');if(!b)return;
+ const tab=b.dataset.tab;if(tab){e.preventDefault();e.stopImmediatePropagation();setTab(tab);return;}
+ let run=null,code=b.getAttribute('onclick')||'';
+ if(b.id==='signInBtn'||b.id==='signUpBtn'||b.id==='signOutBtn'){run=()=>{if(typeof b.onclick==='function')b.onclick.call(b,e);};}
+ else if(/^openQuote\(\)$/.test(code))run=()=>openQuote();
+ else if(/^exportCSV\(\)$/.test(code))run=()=>exportCSV();
+ else if(/^saveTemplates\(\)$/.test(code))run=()=>saveTemplates();
+ else if(/^saveBusiness\(\)$/.test(code))run=()=>saveBusiness();
+ else if(/^closeQuote\(\)$/.test(code))run=()=>closeQuote();
+ else if(/^closeDraft\(\)$/.test(code))run=()=>closeDraft();
+ else if(/^copyDraft\(\)$/.test(code))run=()=>copyDraft();
+ else if(/^clearData\(\)$/.test(code))run=()=>clearData();
+ else if(/^document\.getElementById\('csvFile'\)\.click\(\)$/.test(code))run=()=>document.getElementById('csvFile').click();
+ else {let m=code.match(/^(draft|editQuote|removeQuote)\('([^']*)'(?:,'([^']*)')?\)$/);if(m)run=()=>window[m[1]](m[2],m[3]);}
+ if(run){e.preventDefault();e.stopImmediatePropagation();try{run()}catch(err){console.error('QuoteBack action failed:',err);const box=document.getElementById('authMessage');if(box)box.textContent='Action error: '+(err.message||String(err));}}
+},true);
+document.addEventListener('submit',function(e){if(e.target.matches('#quoteModal form')){e.preventDefault();e.stopImmediatePropagation();try{saveQuote(e)}catch(err){console.error(err);alert('Could not save estimate: '+(err.message||String(err)));}}},true);
 window.quoteBackLoginFallback=function(){
  const box=document.getElementById('authMessage');
  if(box)box.textContent='The login code did not finish initializing. Please refresh the page. If this message remains, send us a screenshot.';
