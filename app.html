@@ -15,7 +15,7 @@
 <div><label>Customer name *</label><input id="qName" class="field" required maxlength="120"></div><div><label>Customer email</label><input id="qEmail" class="field" type="email" maxlength="255"></div><div><label>Customer phone</label><input id="qPhone" class="field" maxlength="40"></div><div><label>Estimate amount (CAD) *</label><input id="qAmount" class="field" type="number" min="0" step=".01" required></div><div class="span2"><label>Job description *</label><input id="qJob" class="field" required maxlength="300"></div><div><label>Date sent</label><input id="qSent" class="field" type="date"></div><div><label>Next follow-up date</label><input id="qDate" class="field" type="date"></div><div><label>Status</label><select id="qStatus" class="field"><option value="sent">Sent</option><option value="follow_up">Follow-up</option><option value="won">Won</option><option value="lost">Lost</option></select></div><div><label>Notes</label><input id="qNotes" class="field" maxlength="1000"></div></div><div class="end"><button type="button" class="btn" onclick="closeQuote()">Cancel</button><button class="btn primary">Save estimate</button></div></form></div>
 <div id="draftModal" class="modal hidden"><div class="dialog"><h2>Follow-up draft</h2><p id="draftContext" class="help"></p><textarea id="draftText" class="field" rows="8"></textarea><div class="end"><button class="btn" onclick="closeDraft()">Close</button><button class="btn primary" onclick="copyDraft()">Copy message</button></div><p class="help">This only prepares text. It does not send a message.</p></div></div>
 <script>
-const KEY='quoteback.local.v1';let data=load();let editing=null;
+const KEY='quoteback.local.v1';let data=load();window.quotebackData=data;let editing=null;
 const defaults={subject:'Following up on your estimate',email:'Hi {{customer}},\n\nI wanted to follow up on the {{job}} estimate we sent for {{amount}}. Do you have any questions I can help answer?\n\nThanks,\n{{business}}',sms:'Hi {{customer}}, this is {{business}}. Just checking whether you had any questions about our {{job}} estimate for {{amount}}. Reply when convenient.'};
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{quotes:[],templates:defaults,business:{name:'',email:''}}}catch{return{quotes:[],templates:defaults,business:{name:'',email:''}}}}
 function persist(){localStorage.setItem(KEY,JSON.stringify(data));renderAll()}
@@ -53,6 +53,8 @@ renderAll();
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function(){
+ const data=window.quotebackData;
+ if(!data){console.error('QuoteBack data store did not initialize.');return;}
  const SUPABASE_URL='https://idqalgwrxeecsdnuogyf.supabase.co';
  const SUPABASE_PUBLISHABLE_KEY='sb_publishable_6Q4xoKuEUPybs85DphNCsA_dWtSzlsu';
  const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
