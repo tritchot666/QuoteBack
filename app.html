@@ -16,8 +16,8 @@
 <div id="draftModal" class="modal hidden"><div class="dialog"><h2>Follow-up draft</h2><p id="draftContext" class="help"></p><textarea id="draftText" class="field" rows="8"></textarea><div class="end"><button class="btn" onclick="closeDraft()">Close</button><button class="btn primary" onclick="copyDraft()">Copy message</button></div><p class="help">This only prepares text. It does not send a message.</p></div></div>
 <script>
 const KEY='quoteback.local.v1';
-window.QUOTE_BACK_STORAGE_KEY=KEY;let data=load();window.quotebackData=data;let editing=null;
 const defaults={subject:'Following up on your estimate',email:'Hi {{customer}},\n\nI wanted to follow up on the {{job}} estimate we sent for {{amount}}. Do you have any questions I can help answer?\n\nThanks,\n{{business}}',sms:'Hi {{customer}}, this is {{business}}. Just checking whether you had any questions about our {{job}} estimate for {{amount}}. Reply when convenient.'};
+window.QUOTE_BACK_STORAGE_KEY=KEY;let data=load();window.quotebackData=data;let editing=null;
 function load(){const empty={quotes:[],templates:defaults,business:{name:'',email:''}};try{const saved=JSON.parse(localStorage.getItem(KEY))||{};return {...empty,...saved,quotes:Array.isArray(saved.quotes)?saved.quotes:[],templates:{...defaults,...(saved.templates||{})},business:{...empty.business,...(saved.business||{})}}}catch{return empty}}
 function persist(){localStorage.setItem(KEY,JSON.stringify(data));renderAll()}
 function money(n){return new Intl.NumberFormat('en-CA',{style:'currency',currency:'CAD',maximumFractionDigits:0}).format(Number(n)||0)}
