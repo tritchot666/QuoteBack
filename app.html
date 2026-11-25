@@ -17,7 +17,7 @@
 <script>
 const KEY='quoteback.local.v1';let data=load();window.quotebackData=data;let editing=null;
 const defaults={subject:'Following up on your estimate',email:'Hi {{customer}},\n\nI wanted to follow up on the {{job}} estimate we sent for {{amount}}. Do you have any questions I can help answer?\n\nThanks,\n{{business}}',sms:'Hi {{customer}}, this is {{business}}. Just checking whether you had any questions about our {{job}} estimate for {{amount}}. Reply when convenient.'};
-function load(){try{return JSON.parse(localStorage.getItem(KEY))||{quotes:[],templates:defaults,business:{name:'',email:''}}}catch{return{quotes:[],templates:defaults,business:{name:'',email:''}}}}
+function load(){const empty={quotes:[],templates:defaults,business:{name:'',email:''}};try{const saved=JSON.parse(localStorage.getItem(KEY))||{};return {...empty,...saved,quotes:Array.isArray(saved.quotes)?saved.quotes:[],templates:{...defaults,...(saved.templates||{})},business:{...empty.business,...(saved.business||{})}}}catch{return empty}}
 function persist(){localStorage.setItem(KEY,JSON.stringify(data));renderAll()}
 function money(n){return new Intl.NumberFormat('en-CA',{style:'currency',currency:'CAD',maximumFractionDigits:0}).format(Number(n)||0)}
 function date(s){return s?new Date(s+'T12:00:00').toLocaleDateString('en-CA'):'—'}
