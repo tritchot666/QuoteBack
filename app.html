@@ -62,8 +62,15 @@ renderAll();
  function dbToLocal(r){return {id:r.id,customer:r.customer_name,email:r.customer_email||'',phone:r.customer_phone||'',amount:Number(r.amount_cad)||0,job:r.job_description,sent:r.sent_on||'',followUp:r.follow_up_on||'',status:r.status,notes:r.notes||'',updated:r.updated_at};}
  function localToDb(q){return {id:q.id,user_id:currentUser.id,customer_name:q.customer,customer_email:q.email||null,customer_phone:q.phone||null,job_description:q.job,amount_cad:Number(q.amount)||0,sent_on:q.sent||null,follow_up_on:q.followUp||null,status:q.status,notes:q.notes||'',updated_at:new Date().toISOString()};}
  async function refreshCloud(){
+  const localBackup=[...data.quotes];
   const {data:rows,error}=await client.from('estimates').select('*').order('created_at',{ascending:false});
   if(error)throw error;
+  if((rows||[]).length===0&&localBackup.length){
+   const {error:importError}=await client.from('estimates').upsert(localBackup.map(localToDb),{onConflict:'id'});
+   if(importError)throw importError;
+   message('Your existing estimates were copied into your cloud account.');
+   return refreshCloud();
+  }
   data.quotes=(rows||[]).map(dbToLocal);
   const {data:profile}=await client.from('profiles').select('company_name,contact_email').eq('id',currentUser.id).maybeSingle();
   data.business={name:profile?.company_name||'',email:profile?.contact_email||currentUser.email||''};
@@ -77,6 +84,7 @@ renderAll();
   message('All estimates synced to your secure QuoteBack account.');
  }
  window.persist=function(){localStorage.setItem(KEY,JSON.stringify(data));renderAll();saveCloud().catch(e=>message('Cloud save failed: '+e.message,true));};
+ window.saveBusiness=async function(){data.business={name:$('bizName').value.trim(),email:$('bizEmail').value.trim()};localStorage.setItem(KEY,JSON.stringify(data));if(currentUser){const {error}=await client.from('profiles').upsert({id:currentUser.id,company_name:data.business.name,contact_email:data.business.email,updated_at:new Date().toISOString()},{onConflict:'id'});if(error){message('Profile save failed: '+error.message,true);return;}}renderAll();message('Business profile saved.');};
  window.removeQuote=async function(id){if(!confirm('Delete this estimate permanently?'))return;data.quotes=data.quotes.filter(q=>q.id!==id);if(currentUser){const {error}=await client.from('estimates').delete().eq('id',id);if(error){message('Delete failed: '+error.message,true);return;}}window.persist();};
  window.clearData=function(){if(!confirm('Delete all estimates from your QuoteBack account and this device? This cannot be undone.'))return;(async()=>{if(currentUser){const {error}=await client.from('estimates').delete().eq('user_id',currentUser.id);if(error){message('Could not delete cloud records: '+error.message,true);return;}}data.quotes=[];localStorage.setItem(KEY,JSON.stringify(data));renderAll();message('Your estimates were deleted.');})();};
  function setSignedInUI(user){$('accountStatus').textContent=user?'QuoteBack cloud account':'Connect your QuoteBack account';$('accountEmail').textContent=user?user.email:'Sign in to sync estimates across devices.';$('authControls').classList.toggle('hidden',!!user);$('signOutBtn').classList.toggle('hidden',!user);}
