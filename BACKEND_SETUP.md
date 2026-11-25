@@ -1,34 +1,57 @@
 # QuoteBack backend setup (GitHub-only codebase)
 
-This repository remains the source of truth. The backend is a separate Supabase project, not Lovable.
+The GitHub repository is the source of truth. Supabase provides authentication, database storage, and server-side functions. Lovable is not required.
 
-## What this adds
-- Tenant-owned profiles, estimates, subscriptions, consent evidence, suppression entries and message audit events.
-- Row-level security on customer data.
-- Automatic profile creation when a user signs up.
-- A Stripe webhook with signature verification, event idempotency, subscription status updates and failed-payment handling.
+## Current capabilities
+- Supabase email/password sign-in in the workspace.
+- Tenant-owned estimate storage protected by row-level security (RLS).
+- Profile creation on signup.
+- Stripe webhook foundation with signature verification and subscription event handling.
+- Local CSV import/export and editable message drafts.
 
-## Required external project setup
-Create a Supabase project on the free tier and run `supabase/migrations/202611250001_quoteback_core.sql` in its SQL editor. Deploy the Edge Function:
+## Not yet active
+- Paid self-serve checkout is disabled until secrets, recurring Stripe Price IDs, webhook delivery, and account provisioning are configured and tested.
+- Automated email and SMS sending are not implemented. Do not advertise or promise automated delivery.
+- Local-only records created while signed out do not automatically transfer into a cloud account. Export a CSV before switching accounts or clearing browser data.
 
+## Supabase project configuration
+Run `supabase/migrations/202611250001_quoteback_core.sql` in the Supabase SQL Editor.
+
+In **Authentication → URL Configuration**, set:
+- Site URL: `https://tritchot666.github.io`
+- Redirect URL: `https://tritchot666.github.io/QuoteBack/app.html`
+
+The browser app uses the public project URL and publishable key. Never put a secret/service-role key in browser code or GitHub.
+
+## Edge Functions
+Deploy both functions:
 ```sh
+supabase functions deploy create-checkout-session
 supabase functions deploy stripe-webhook --no-verify-jwt
-supabase secrets set STRIPE_SECRET_KEY=... STRIPE_WEBHOOK_SECRET=... STRIPE_STARTER_PRICE_ID=... STRIPE_GROWTH_PRICE_ID=... SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=...
 ```
 
-Never put the service-role key, Stripe secret key, or webhook secret in browser code or GitHub.
+Set server-side secrets using the Supabase CLI or dashboard Edge Function secrets:
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `STRIPE_STARTER_PRICE_ID` (recurring CAD price)
+- `STRIPE_GROWTH_PRICE_ID` (recurring CAD price)
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY` (used to validate the signed-in customer)
+- `SUPABASE_SERVICE_ROLE_KEY` (webhook only; never expose it)
 
-Configure Stripe to send these events to `https://YOUR_PROJECT_REF.supabase.co/functions/v1/stripe-webhook`:
+The checkout function validates the caller's Supabase access token and accepts only the `starter` or `growth` plan. It returns a Stripe-hosted Checkout URL. The webhook verifies Stripe signatures and writes subscription status to the database.
+
+In Stripe, create recurring CAD Prices and configure a webhook endpoint:
+`https://idqalgwrxeecsdnuogyf.supabase.co/functions/v1/stripe-webhook`
+
+Subscribe to:
 - `checkout.session.completed`
+- `customer.subscription.created`
 - `customer.subscription.updated`
 - `customer.subscription.deleted`
 - `invoice.payment_failed`
 
-## Important Stripe limitation
-The two existing Stripe Payment Links are preserved on the marketing page. They are not sufficient by themselves for secure account provisioning: checkout must carry the authenticated QuoteBack user's UUID as `client_reference_id`, and the webhook needs the actual recurring Price IDs. Do not enable paid self-serve onboarding until checkout is created from an authenticated session or the payment links are replaced with authenticated Checkout Sessions. The existing links must not be treated as proof of an active subscription entitlement.
+Do not enable paid buttons until both functions are deployed, all server secrets are configured, test-mode checkout succeeds for a real authenticated test account, webhook events update the correct subscription row, and cancellation/payment-failure states are verified.
 
-## Messaging
-No SMS/email provider is configured. Do not send marketing messages until recipient consent is documented and provider compliance (including Canadian sender identification, unsubscribe/STOP handling, suppression and delivery webhooks) is implemented. This schema stores consent and suppression evidence but does not send messages.
-
-## Frontend integration remaining
-Set the public Supabase project URL and anon key in the browser app only after project creation. Use Supabase Auth for sign-in, then read/write estimates under the signed-in user's ID. RLS is the security boundary; never rely on client-side filtering alone.
+## Messaging and Canadian compliance
+No sending provider is configured. The app only creates drafts. Before any commercial email or SMS automation, implement and test consent evidence, sender identification, unsubscribe/STOP handling, suppression checks, and provider delivery webhooks. Follow Canadian Anti-Spam Legislation and applicable carrier rules. Never send bulk unsolicited messages.
