@@ -52,8 +52,19 @@ function clearData(){if(confirm('This permanently deletes every QuoteBack record
 // Use the native button and form handlers; avoid double-dispatching clicks.
 window.quoteBackLoginFallback=function(){
  const box=document.getElementById('authMessage');
- if(box)box.textContent='The login code did not finish initializing. Please refresh the page. If this message remains, send us a screenshot.';
+ const text='QuoteBack login has not initialized. Refresh the page. If this appears again, the live page is not loading its login script.';
+ if(box){box.textContent=text;box.style.borderColor='#fb7185';}
+ alert(text);
 };
+window.addEventListener('error',function(e){
+ const box=document.getElementById('authMessage');
+ if(box){box.textContent='QuoteBack script error: '+(e.message||'Unknown JavaScript error');box.style.borderColor='#fb7185';}
+});
+window.addEventListener('unhandledrejection',function(e){
+ const box=document.getElementById('authMessage');
+ const reason=e.reason?.message||String(e.reason||'Unknown async error');
+ if(box){box.textContent='QuoteBack error: '+reason;box.style.borderColor='#fb7185';}
+});
 renderAll();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -69,14 +80,17 @@ renderAll();
  if(!sdk||typeof sdk.createClient!=='function'){
   const explain='The secure login service did not load. Check your internet connection, then refresh this page and try again.';
   $('authMessage').textContent=explain;
-  $('signInBtn').onclick=()=>message(explain,true);
-  $('signUpBtn').onclick=()=>message(explain,true);
+  $('signInBtn').onclick=()=>{message(explain,true);alert(explain);};
+  $('signUpBtn').onclick=()=>{message(explain,true);alert(explain);};
   return;
  }
  let client;
  try{client=sdk.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);}
  catch(err){
-  $('authMessage').textContent='Could not initialize secure login: '+(err?.message||String(err));
+  const explain='Could not initialize secure login: '+(err?.message||String(err));
+  $('authMessage').textContent=explain;
+  $('signInBtn').onclick=()=>{message(explain,true);alert(explain);};
+  $('signUpBtn').onclick=()=>{message(explain,true);alert(explain);};
   return;
  }
  let currentUser=null, cloudReady=false;
@@ -108,8 +122,10 @@ renderAll();
   try{await refreshCloud();$('settings').querySelector('.help').textContent='Your estimates are synced to your private Supabase account. CSV export remains available as a backup.';message('Signed in. Your cloud estimates are loaded and ready.');}
   catch(e){message('Could not load cloud estimates: '+e.message,true);}
  }
- $('signInBtn').onclick=async()=>{const email=$('authEmail').value.trim(),password=$('authPassword').value;if(!email||!password){message('Enter your email and password.',true);return;}const {data:res,error}=await client.auth.signInWithPassword({email,password});if(error){message(error.message,true);return;}await signedIn(res.user);};
- $('signUpBtn').onclick=async()=>{const email=$('authEmail').value.trim(),password=$('authPassword').value;if(!email||password.length<8){message('Enter an email and a password of at least 8 characters.',true);return;}const {data:res,error}=await client.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}});if(error){message(error.message,true);return;}if(res.session)await signedIn(res.user);else message('Account created. Check your email to confirm, then return here and sign in.');};
+ $('signInBtn').removeAttribute('onclick');
+ $('signUpBtn').removeAttribute('onclick');
+ $('signInBtn').addEventListener('click',async()=>{try{message('Signing in…');const email=$('authEmail').value.trim(),password=$('authPassword').value;if(!email||!password){message('Enter your email and password.',true);return;}const {data:res,error}=await client.auth.signInWithPassword({email,password});if(error){message(error.message,true);return;}if(!res.user){message('Supabase did not return a signed-in user. Try again.',true);return;}await signedIn(res.user);}catch(err){message('Sign-in failed: '+(err?.message||String(err)),true);}});
+ $('signUpBtn').addEventListener('click',async()=>{try{message('Creating account…');const email=$('authEmail').value.trim(),password=$('authPassword').value;if(!email||password.length<8){message('Enter an email and a password of at least 8 characters.',true);return;}const {data:res,error}=await client.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}});if(error){message(error.message,true);return;}if(res.session&&res.user)await signedIn(res.user);else message('Account created. Check your email to confirm, then return here and sign in.');}catch(err){message('Account creation failed: '+(err?.message||String(err)),true);}});
  $('signOutBtn').onclick=async()=>{await client.auth.signOut();currentUser=null;cloudReady=false;setSignedInUI(null);data.quotes=[];renderAll();message('Signed out. Sign in again to access your cloud estimates.');};
  client.auth.onAuthStateChange((_event,session)=>{if(session?.user&&!currentUser)signedIn(session.user);});
  client.auth.getSession().then(({data:res})=>{if(res.session)signedIn(res.session.user);else{setSignedInUI(null);message('Create an account or sign in to use cloud storage. Estimates will not sync until you sign in.');}});
