@@ -21,7 +21,7 @@ function load(){try{return JSON.parse(localStorage.getItem(KEY))||{quotes:[],tem
 function persist(){localStorage.setItem(KEY,JSON.stringify(data));renderAll()}
 function money(n){return new Intl.NumberFormat('en-CA',{style:'currency',currency:'CAD',maximumFractionDigits:0}).format(Number(n)||0)}
 function date(s){return s?new Date(s+'T12:00:00').toLocaleDateString('en-CA'):'—'}
-function today(){return new Date().toISOString().slice(0,10)}
+function today(){const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
 function due(q){return q.status!=='won'&&q.status!=='lost'&&q.followUp&&q.followUp<=today()}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function status(s){return '<span class="pill '+s+'">'+({sent:'Sent',follow_up:'Follow-up',won:'Won',lost:'Lost'}[s]||s)+'</span>'}
