@@ -133,7 +133,7 @@ renderAll();
  const buttons=[$('basicCheckoutBtn'),$('premiumCheckoutBtn')];buttons.forEach(b=>b.disabled=true);
  status.textContent='Connecting securely to Stripe…';
  try{
-  const {data:result,error}=await client.functions.invoke('create-checkout-session',{body:{plan}});
+  const {data:result,error}=await client.functions.invoke('clever-service',{body:{plan}});
   if(error)throw error;
   if(!result?.url)throw new Error(result?.error||'Stripe did not return a checkout link.');
   window.location.assign(result.url);
@@ -144,8 +144,8 @@ renderAll();
   buttons.forEach(b=>b.disabled=false);
  }
 }
-$('basicCheckoutBtn').addEventListener('click',()=>startCheckout('starter'));
-$('premiumCheckoutBtn').addEventListener('click',()=>startCheckout('growth'));
+$('basicCheckoutBtn').addEventListener('click',()=>startCheckout('basic'));
+$('premiumCheckoutBtn').addEventListener('click',()=>startCheckout('premium'));
 client.auth.onAuthStateChange((_event,session)=>{if(session?.user&&!currentUser)signedIn(session.user);});
  client.auth.getSession().then(({data:res})=>{if(res.session)signedIn(res.session.user);else{setSignedInUI(null);message('Create an account or sign in to use cloud storage. Estimates will not sync until you sign in.');}});
 })();
