@@ -1,0 +1,46 @@
+name: Independent Living web checks
+
+on:
+  push:
+    branches: [independent-living-mvp]
+    paths:
+      - "independent-living/web/**"
+      - "independent-living/supabase/migrations/**"
+      - ".github/workflows/independent-living-ci.yml"
+  pull_request:
+    paths:
+      - "independent-living/web/**"
+      - "independent-living/supabase/migrations/**"
+      - ".github/workflows/independent-living-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check browser JavaScript syntax
+        run: node --check independent-living/web/app.js
+      - name: Check required app files
+        run: |
+          test -s independent-living/web/index.html
+          test -s independent-living/web/styles.css
+          test -s independent-living/web/README.md
+          test -s independent-living/supabase/migrations/202611270002_atomic_request_submission.sql
+      - name: Check HTML parsing
+        run: |
+          python - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          class Check(HTMLParser):
+              pass
+          parser = Check()
+          parser.feed(Path("independent-living/web/index.html").read_text())
+          parser.close()
+          print("HTML parsed successfully")
+          PY

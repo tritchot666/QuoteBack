@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Request support — Independent Living Canada (prototype)</title>
+<style>
+:root{--ink:#19352f;--muted:#60746e;--green:#1e6253;--mint:#eaf4ef;--cream:#fbfaf6;--line:#dce7e0}
+*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font:16px/1.55 system-ui,sans-serif}.wrap{max-width:760px;margin:auto;padding:28px 20px}.brand{font-weight:850;color:var(--green);text-decoration:none}.panel{background:#fff;border:1px solid var(--line);border-radius:18px;padding:26px;margin-top:24px}h1{font-size:clamp(30px,5vw,42px);line-height:1.1;margin:20px 0 8px}p{color:var(--muted)}label{display:block;font-weight:700;margin:17px 0 6px}input,select,textarea{width:100%;padding:12px;border:1px solid #b8c9c0;border-radius:9px;font:inherit;background:#fff;color:var(--ink)}textarea{min-height:105px}button{margin-top:22px;padding:13px 18px;background:var(--green);color:#fff;border:0;border-radius:9px;font:inherit;font-weight:750;cursor:pointer}.notice{padding:14px;border-radius:10px;background:#fff8e8;border:1px solid #f0dfb9;color:#68552d;font-size:14px}.small{font-size:13px;color:var(--muted)}.result{display:none;padding:16px;background:var(--mint);border-radius:10px;margin-top:18px}.required{color:#a33}a{color:var(--green)}
+</style>
+</head>
+<body><main class="wrap">
+<a class="brand" href="index.html">← Independent Living Canada</a>
+<h1>Tell us what kind of support would help</h1>
+<p>This is a demonstration of the planned request process for the Winnipeg pilot.</p>
+<div class="notice"><strong>Prototype only:</strong> This form does not send or save information. Please use fictional details only. No rides or services are currently being booked. For emergencies, call 911. We do not provide medical or personal care.</div>
+<form class="panel" id="requestForm">
+<label for="category">What do you need help with? <span class="required">*</span></label>
+<select id="category" required><option value="">Choose a service</option><option>Non-emergency transportation</option><option>Companionship or social visit</option><option>Errands or groceries</option><option>Light household assistance</option><option>Home accessibility modification</option></select>
+<label for="city">City or community <span class="required">*</span></label>
+<input id="city" required value="Winnipeg" autocomplete="address-level2">
+<label for="date">Preferred date (optional)</label><input id="date" type="date">
+<label for="time">Preferred time window (optional)</label><select id="time"><option value="">No preference</option><option>Morning</option><option>Afternoon</option><option>Evening</option></select>
+<label for="details">What practical help is needed? <span class="required">*</span></label>
+<textarea id="details" required maxlength="700" placeholder="Describe the task and any practical arrangements. Do not include diagnoses, medication details, health-card numbers or other sensitive health information."></textarea>
+<label for="mobility">Accessibility or mobility arrangements (optional)</label>
+<textarea id="mobility" maxlength="350" placeholder="For example: wheelchair-accessible vehicle needed; one flight of stairs; assistance carrying groceries."></textarea>
+<label for="contact">Your name (demo only)</label><input id="contact" maxlength="80" placeholder="Fictional name">
+<label for="method">Preferred contact method (demo only)</label><select id="method"><option>Email</option><option>Phone</option></select>
+<label><input id="consent" type="checkbox" required style="width:auto;margin-right:8px">I understand this is a non-functional demo and I am not submitting a real service request. <span class="required">*</span></label>
+<button type="submit">Preview my request</button>
+<div class="result" id="result" role="status" aria-live="polite"></div>
+<p class="small">A real service request system will only be enabled after secure database deployment, privacy review, provider checks and operating procedures are complete.</p>
+</form></main>
+<script>
+document.getElementById('requestForm').addEventListener('submit',function(e){e.preventDefault();if(!this.reportValidity())return;const category=document.getElementById('category').value;const city=document.getElementById('city').value;const result=document.getElementById('result');result.style.display='block';result.textContent='Demo preview: '+category+' in '+city+'. Nothing has been transmitted or saved. A live request service is not yet available.';result.focus();});
+</script></body></html>
