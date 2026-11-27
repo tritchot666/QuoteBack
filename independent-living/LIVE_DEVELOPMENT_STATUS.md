@@ -28,7 +28,7 @@ Latest advisor check:
 
 - Source files: `independent-living/web/`
 - Public development preview: https://zrrmqrmedgfgbejhagcc.supabase.co/functions/v1/independent-living-site
-- Supabase Edge Function: `independent-living-site`, status ACTIVE, version 2, JWT verification disabled because it serves static public assets only.
+- Supabase Edge Function: `independent-living-site`, status ACTIVE, version 3, JWT verification disabled because it serves static public assets only.
 - The page loads the browser-safe publishable key dynamically from Supabase's `SUPABASE_PUBLISHABLE_KEYS` environment variable. No key or service-role secret is committed to GitHub.
 - Supabase JS is pinned to `@supabase/supabase-js@2.57.0`.
 
