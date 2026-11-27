@@ -1,78 +1,71 @@
-# Independent Living MVP — Safe Development Environment Setup
+# Independent Living Canada — development environment and local testing
 
-Status: preparation guide only. No Supabase project has been linked or changed by this document.
+Status: a dedicated Supabase development project exists and the first working web app is deployed. This is still a test-only pilot, not a public service launch.
 
-## Non-negotiable separation
+## Project separation
 
-- Create a **new Supabase project dedicated to Independent Living development**.
-- Do not link this branch to QuoteBack's existing Supabase project.
-- Do not copy QuoteBack customer records, authentication users, Stripe data, or secrets.
-- Use synthetic test accounts and fictional requests only.
-- Keep this work on `independent-living-mvp`; do not merge it into `main` as part of setup.
+- Supabase project: `Independent Living Canada`
+- Project ref: `zrrmqrmedgfgbejhagcc`
+- Region: Canada Central (`ca-central-1`)
+- Preview: https://zrrmqrmedgfgbejhagcc.supabase.co/functions/v1/independent-living-site
+- Source branch: `independent-living-mvp`
+- Do not point QuoteBack production, Stripe webhooks, customer data or production auth at this project.
+- Do not merge this branch to `main` without explicit approval.
 
-## 1. Create and identify the project
+## Working app
 
-1. In the Supabase dashboard, create a new project with a clear name such as `independent-living-dev`.
-2. Record the project reference shown in the project URL.
-3. Confirm the project name and reference in the dashboard before any CLI command.
-4. Use a strong, unique database password and store it in a password manager.
-5. Enable multi-factor authentication on the account that administers the project.
+The application is in `independent-living/web/`. It currently supports email/password account creation and sign-in, authenticated customer requests, requester-only request history, and provider applications with pending/inactive defaults.
 
-## 2. Configure local development
+The static website is served by the `independent-living-site` Edge Function. It reads the browser-safe publishable key from the Supabase-provided `SUPABASE_PUBLISHABLE_KEYS` environment variable. The function performs no privileged database operations and does not expose a service-role key. JWT verification is disabled only because this function serves public static assets; all data operations happen through Supabase Auth and RLS.
 
-Install the Supabase CLI using the official instructions for your operating system. The Independent Living project has its own isolated Supabase working directory and migration history. From a clean checkout of this repository:
+For local preview from the repository root:
 
 ```bash
-git checkout independent-living-mvp
-supabase login
-cd independent-living
-supabase link --project-ref YOUR_INDEPENDENT_LIVING_DEV_PROJECT_REF
-supabase projects list
+python3 -m http.server 8080 --directory independent-living/web
 ```
 
-Before linking, compare the project reference character-for-character with the new development project's reference. If it is not an exact match, stop.
+Open http://localhost:8080 and enter the project URL and publishable key in the connection panel. Never enter a service-role or secret key. The Supabase JS client is pinned to `@supabase/supabase-js@2.57.0`.
 
-Do not paste access tokens, database passwords, or service-role keys into chat, GitHub files, screenshots, or client-side code.
+## Auth redirect configuration still required
 
-## 3. Review and apply migrations
+In Supabase Dashboard for project `zrrmqrmedgfgbejhagcc`, open Authentication → URL Configuration:
+- Set the Site URL to `https://zrrmqrmedgfgbejhagcc.supabase.co/functions/v1/independent-living-site`.
+- Add that exact URL to the allowed Redirect URLs.
+- Save changes.
 
-The Independent Living migrations are isolated under `independent-living/supabase/migrations/`. The repository-root `supabase/migrations/` directory is reserved for QuoteBack and must not be used for this product. Run the CLI commands from the `independent-living/` directory so the correct `supabase/config.toml` and migration folder are selected. The isolated migrations currently prepared are:
+This allows confirmation emails to return users to the live preview. Verify the confirmation link using a synthetic test account.
 
-- `supabase/migrations/202611260001_independent_living_core.sql`
-- `supabase/migrations/202611260002_independent_living_provider_approval_guard.sql`
-- `supabase/migrations/202611260003_independent_living_request_and_service_guards.sql`
+## Database
 
-Read all three files before applying them. Confirm that the linked project is the dedicated development project, then apply:
+All Independent Living migrations are isolated under `independent-living/supabase/migrations/`. The repository-root `supabase/migrations/` directory belongs to QuoteBack and must not be used for this product.
 
-```bash
-supabase db push
-supabase migration list
-```
+The current database contains seven RLS-enabled `il_*` tables. The `il_submit_service_request` RPC runs as SECURITY INVOKER and is executable by authenticated users only. It creates the request and private contact record atomically.
 
-If the CLI reports unexpected remote migrations, schema drift, or a project mismatch, stop. Do not use a reset command on a project containing data.
+## Required synthetic-account tests
 
-## 4. Required security checks before any real data
+Use separate synthetic requester and provider accounts. Do not use real customer/provider details.
 
-Use synthetic accounts only. Follow `DATABASE_SECURITY_TEST_PLAN.md` and verify at minimum:
+- Sign up, verify email and sign in.
+- Submit a service request and confirm it appears only in the requester's history.
+- Confirm the request's private contact row is not visible to another account.
+- Apply as a provider and confirm onboarding status is `pending`.
+- Confirm all new provider service rows are inactive.
+- Confirm an unapproved provider cannot activate a service.
+- Confirm a provider cannot change its own onboarding status.
+- Confirm a provider cannot read another provider's profile, services or invites.
 
-- A requester cannot insert a request with a status other than `received`.
-- A requester cannot read another request or its private contact record.
-- An unapproved provider cannot activate a service.
-- A provider cannot change its own onboarding status to approved.
-- An invited approved provider sees only the request summary, not private contact details.
-- A provider cannot respond to another provider's invitation.
-- A supporter has no access merely because a consent row exists; supporter access is not implemented yet.
+A successful migration or static CI check is not proof that all RLS paths are secure. Record the results of the account-isolation tests before any real data is accepted.
 
-Inspect the resulting policies and triggers in the Supabase dashboard. Passing SQL migration alone is not proof that the application is secure.
+## Not yet implemented
 
-## 5. Environment variables and key handling
+- Operator/admin role and secure operator-only request triage.
+- Provider screening evidence, approval workflow, service matching and invitations.
+- Provider responses, booking confirmation and notifications.
+- Family/supporter access and formal consent revocation workflow.
+- Payments, refunds, disputes, complaints and incident handling.
+- Privacy policy, terms, support contact, retention schedule and legal/insurance review.
+- Accessibility audit and Manitoba/provincial operating approvals.
 
-When application integration is implemented, use environment variables rather than hard-coded credentials. The browser may receive only the project URL and publishable/anon key, protected by correctly tested RLS. A service-role/secret key must remain exclusively in a trusted server environment and must never use a `VITE_`, `NEXT_PUBLIC_`, or other browser-exposed prefix.
+## Launch restriction
 
-No application environment file is committed by this guide. Do not create a production environment until the separate development project and deployment target are confirmed.
-
-## 6. Current limitations
-
-This repository currently contains prototype HTML screens and database design/migrations. The forms do not submit to Supabase. The operator dashboard is fictional demo data. There is no implemented operator role, secure notification pipeline, family-supporter access, booking workflow, payment flow, provider verification evidence store, or production hosting configuration.
-
-Do not collect real customer details, advertise confirmed provider availability, accept payment, or describe the service as launched until the relevant technical, legal, insurance, safeguarding, accessibility, and operational launch gates have been completed.
+The hosted page is clearly labelled **development pilot — test accounts only**. Do not advertise public availability, collect real customer data, confirm provider availability, accept payment, or provide emergency/clinical/personal care through this MVP. Complete the launch gates and independent review first.
