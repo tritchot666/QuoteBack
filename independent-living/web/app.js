@@ -252,7 +252,13 @@ function setupEvents() {
 async function start() {
   setupEvents();
   $("projectUrl").value=PROJECT_DEFAULT;
+  const runtimeConfig=window.IL_CONFIG;
   const saved=localStorage.getItem(STORAGE_KEY);
+  if (runtimeConfig?.url && runtimeConfig?.key) {
+    $("projectUrl").value=runtimeConfig.url;
+    try { await connectBrowser(runtimeConfig.url,runtimeConfig.key); return; }
+    catch (error) { showToast("Hosted connection failed: "+(error.message||"Configuration error"),true); }
+  }
   if (!saved) { $("configPanel").hidden=false; $("authGate").hidden=true; return; }
   try {
     const config=JSON.parse(saved);
