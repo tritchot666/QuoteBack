@@ -66,6 +66,16 @@
     </form>
   </div>
 
+  <div id="authGate" class="auth-gate">
+    <form id="authForm" class="config-panel form-grid">
+      <h3 id="authHeading">Welcome back</h3>
+      <p class="muted">Use your email and a password to securely access your account. A confirmation email may be required when creating a new account.</p>
+      <label>Email address<input id="email" type="email" required autocomplete="email"></label>
+      <label>Password<input id="password" type="password" minlength="8" required autocomplete="current-password"></label>
+      <button class="button" id="authSubmit" type="submit">Sign in</button>
+      <p class="muted"><span id="authModeText">New here?</span> <button class="text-button" id="authModeToggle" type="button">Create an account</button></p>
+    </form>
+  </div>
   <div id="accountArea" hidden>
     <div class="signed-in-bar"><div><small>Signed in as</small><strong id="signedInEmail"></strong></div><span class="status-dot">Connected</span></div>
     <div class="tabs" role="tablist" aria-label="Account sections">
