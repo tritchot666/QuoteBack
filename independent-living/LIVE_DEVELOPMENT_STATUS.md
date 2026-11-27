@@ -1,6 +1,6 @@
 # Independent Living Canada — live development environment
 
-Last updated: 2026-11-26
+Last updated: 2026-11-27
 
 ## Supabase development project
 
@@ -9,42 +9,64 @@ Last updated: 2026-11-26
 - Region: Canada Central (`ca-central-1`)
 - API URL: `https://zrrmqrmedgfgbejhagcc.supabase.co`
 - Status at verification: `ACTIVE_HEALTHY`
-- Quoted project creation cost: $0/month at time of creation (future usage, plan limits, and billing can change; check Supabase billing before production use).
+- The project was created with a $0/month quoted base cost; future usage, plan limits and billing can change.
 
 This is a dedicated project in the QuoteBack organization. It is separate from QuoteBack production. Do not point QuoteBack's production app, Stripe webhook, or customer records at this project.
 
 ## Database deployment
 
-The following migrations have been applied and verified:
-1. `202611260001_independent_living_core`
-2. `202611260002_independent_living_provider_approval_guard`
-3. `202611260003_independent_living_request_and_service_guards`
-4. `202611260004_independent_living_provider_suspension`
-5. `20261127_security_hardening`
+The core schema, provider approval guards, service/request guards, provider suspension safeguards and security hardening have been applied. A further migration, `atomic_request_submission`, adds the authenticated `il_submit_service_request` RPC.
 
-Seven `il_*` tables exist. Row-level security is enabled on all seven. There are 13 RLS policies. The three trigger-only SECURITY DEFINER functions have EXECUTE revoked from PUBLIC, anon, and authenticated. A database check returned zero public execute grants for those functions.
+Seven `il_*` tables exist and RLS is enabled on all seven. The new request RPC was verified as SECURITY INVOKER; `anon` cannot execute it and `authenticated` can. The RPC creates the service request and its separate private contact record in one transaction.
 
-Supabase security advisors returned no findings at the last check. Health advisors returned no findings. Performance advisors still report unused indexes (expected on an empty database) and two multiple-permissive-SELECT policy warnings because a requester and an invited provider have different legitimate read paths. Revisit after integration and load testing.
+Latest advisor check:
+- Security: zero findings.
+- Health: zero findings.
+- Performance: seven unused-index notices (expected on a low-volume/empty development database) and two multiple-permissive-SELECT policy warnings. The latter are the intended requester/invited-provider read paths and should be revisited after integration and load testing.
+
+## Working web app
+
+- Source files: `independent-living/web/`
+- Public development preview: https://zrrmqrmedgfgbejhagcc.supabase.co/functions/v1/independent-living-site
+- Supabase Edge Function: `independent-living-site`, status ACTIVE, version 2, JWT verification disabled because it serves static public assets only.
+- The page loads the browser-safe publishable key dynamically from Supabase's `SUPABASE_PUBLISHABLE_KEYS` environment variable. No key or service-role secret is committed to GitHub.
+- Supabase JS is pinned to `@supabase/supabase-js@2.57.0`.
+
+Implemented in the app:
+- Email/password sign-up and sign-in.
+- Customer request submission through the atomic RPC.
+- Request history restricted by requester RLS.
+- Provider application and service-category registration.
+- Provider profiles start as `pending`; service listings start inactive.
+- The existing database trigger prevents unapproved providers from activating services.
+- Responsive layout, keyboard focus states, labelled forms and non-emergency/non-clinical boundaries.
+- CI workflow checks browser JavaScript syntax, required files and HTML parsing.
 
 ## Important limitations
 
-- No real customer or provider records have been inserted.
-- No production users/authentication flow has been configured or tested.
-- No client app is connected to this database yet.
-- The HTML pages in `prototype/` are demonstrations only; their forms do not submit or store data.
-- No provider screening, insurance/licence verification, legal review, privacy review, or accessibility audit has been completed.
-- No payment processing is enabled.
-- Do not accept emergency, ambulance, clinical, nursing, medication, or personal-care requests through this MVP.
+This is a **development pilot, not a public service launch**. The live site is visibly labelled test-only. Use synthetic accounts and fictional information only. Do not enter real customer, provider, financial, health or accessibility-sensitive information.
+
+Not yet implemented or approved:
+- Authenticated end-to-end tests with separate synthetic requester/provider accounts.
+- Operator-only admin workflows and role management.
+- Provider screening, credential/insurance/licence review and provider directory.
+- Request routing, provider invitations, matching, booking confirmations or notifications.
+- Family/supporter access and formal consent management.
+- Payment processing, refunds, disputes, incident handling or complaint workflows.
+- Reviewed privacy policy, terms, support contact, retention/deletion schedule and provincial operating approvals.
+- Formal accessibility audit and legal/insurance review.
+
+The Edge Function deployment reports ACTIVE. A separate external HTTP smoke test and full browser end-to-end test are still outstanding.
 
 ## Next engineering gates
 
-1. Implement authentication and connect a development-only client using the Supabase publishable key stored in local environment configuration (never commit keys or service-role secrets).
-2. Add authenticated integration tests using separate synthetic requester and provider accounts; verify ownership isolation, provider invitation access, contact-detail privacy, provider approval/suspension, and consent revocation.
-3. Add operator-only server-side workflows for provider verification, request routing, status transitions, and incident handling. Do not implement these with client-side service-role credentials.
-4. Build and test the real request and provider onboarding flows; replace demo-only copy only after end-to-end tests pass.
-5. Complete Manitoba pilot legal, insurance, safeguarding, privacy, accessibility, and transport checks before taking real requests.
-6. Keep the GitHub pull request draft until independent review and launch gates are complete.
+1. Configure Supabase Auth Site URL and allowed redirect URL to the live preview URL.
+2. Run signup, confirmation, sign-in, request submission, private-contact isolation and provider onboarding tests with synthetic accounts.
+3. Build an operator-only workflow using server-side authorization and least-privilege access; never expose service-role credentials in the browser.
+4. Complete Manitoba pilot legal, insurance, safeguarding, privacy, accessibility and transportation checks before accepting real requests.
+5. Add consent-aware family access, accessibility testing, incident handling and a retention/deletion process.
+6. Keep PR #3 in draft; do not merge to QuoteBack production until reviewed and approved.
 
 ## Credential handling
 
-The project API URL and publishable key may be configured in a local development environment. Never commit secrets. Never expose a Supabase service-role/secret key in browser code, a public repository, or a `NEXT_PUBLIC_*` variable.
+The project URL and publishable key may be exposed to the browser. The service-role/secret key must remain exclusively in trusted server-side environments and must never appear in browser code, a public repository, or a `NEXT_PUBLIC_*` variable.
