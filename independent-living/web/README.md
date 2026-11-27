@@ -2,11 +2,28 @@
 
 **Development pilot only.** The app is connected to a separate Supabase development project. It is not open for public bookings. Use synthetic test accounts and fictional details only; do not submit real personal, financial, health, or accessibility-sensitive information.
 
-## Live development preview
+## Website hosting
 
+The primary website is being moved to GitHub Pages because the Supabase Edge Function preview was returning raw HTML in some browsers instead of rendering it.
+
+- Source: `independent-living/web/`
+- Deployment workflow: `.github/workflows/independent-living-pages.yml`
+- Expected project site: https://tritchot666.github.io/QuoteBack/
+- The authoritative published URL will be the `page_url` reported by the successful GitHub Pages deployment run.
+
+The workflow copies the contents of this directory to the Pages artifact root. Asset paths in the HTML are relative so CSS and JavaScript resolve on the project site. If the first deployment reports that Pages is not enabled, enable GitHub Pages in repository Settings → Pages and choose **GitHub Actions** as the build and deployment source, then rerun the workflow.
+
+The old Supabase Edge Function preview is retained temporarily for diagnosis:
 https://zrrmqrmedgfgbejhagcc.supabase.co/functions/v1/independent-living-site
 
-The public Edge Function serves the static site only. It exposes the project's browser-safe publishable key at runtime; all database access is still subject to Supabase Auth and row-level security. The function does not use a service-role key and performs no privileged database operations.
+## Supabase development connection
+
+- Project ref: `zrrmqrmedgfgbejhagcc` (Canada Central)
+- Project URL: `https://zrrmqrmedgfgbejhagcc.supabase.co`
+- Browser configuration: `config.js` contains only the Supabase publishable key, which is designed for browser exposure. Never put a service-role or secret key in this directory, GitHub, or any browser bundle.
+- Supabase JS is pinned to `@supabase/supabase-js@2.57.0`.
+
+All database access is subject to Supabase Auth and row-level security. The static website does not perform privileged database operations.
 
 ## Implemented
 
@@ -38,23 +55,22 @@ From the repository root:
 python3 -m http.server 8080 --directory independent-living/web
 ```
 
-Open http://localhost:8080. The local page asks for the project URL and publishable key. Use only the publishable key. Never enter a service-role or secret key.
-
-The browser loads the Supabase JS client from the pinned CDN version `@supabase/supabase-js@2.57.0`.
+Open http://localhost:8080. The app reads its Supabase URL and publishable key from `config.js`.
 
 ## Project separation
 
-- Source: `independent-living/web/`
+- Source files: `independent-living/web/`
 - Supabase config and migrations: `independent-living/supabase/`
-- Project ref: `zrrmqrmedgfgbejhagcc` (Canada Central)
 - Keep all changes on `independent-living-mvp` until reviewed.
 - Do not use the repository-root `supabase/migrations/` directory; it belongs to QuoteBack.
 - Do not merge this work into QuoteBack production.
 
 ## Required next steps
 
-1. Test signup, email confirmation, login, request submission, private-contact isolation and provider onboarding with separate synthetic accounts.
-2. Build an operator-only workflow using server-side authorization and least-privilege access.
-3. Complete provider screening, privacy/legal/insurance and Manitoba transportation/service reviews.
-4. Add consent-aware family access, accessibility testing, incident handling and a retention/deletion process.
-5. Complete the launch acceptance checklist before accepting real requests.
+1. Verify GitHub Pages deployment and published homepage rendering on desktop and mobile.
+2. Configure Supabase Auth Site URL and allowed redirect URL to the final GitHub Pages URL.
+3. Run signup, email confirmation, sign-in, request submission, private-contact isolation and provider onboarding tests with separate synthetic accounts.
+4. Build an operator-only workflow using server-side authorization and least-privilege access.
+5. Complete provider screening, privacy/legal/insurance and Manitoba transportation/service reviews.
+6. Add consent-aware family access, accessibility testing, incident handling and a retention/deletion process.
+7. Complete the launch acceptance checklist before accepting real requests.
