@@ -20,11 +20,12 @@ Status: preparation guide only. No Supabase project has been linked or changed b
 
 ## 2. Configure local development
 
-Install the Supabase CLI using the official instructions for your operating system. From a clean checkout of this repository:
+Install the Supabase CLI using the official instructions for your operating system. The Independent Living project has its own isolated Supabase working directory and migration history. From a clean checkout of this repository:
 
 ```bash
 git checkout independent-living-mvp
 supabase login
+cd independent-living
 supabase link --project-ref YOUR_INDEPENDENT_LIVING_DEV_PROJECT_REF
 supabase projects list
 ```
@@ -35,7 +36,7 @@ Do not paste access tokens, database passwords, or service-role keys into chat, 
 
 ## 3. Review and apply migrations
 
-The Independent Living migrations currently prepared are:
+The Independent Living migrations are isolated under `independent-living/supabase/migrations/`. The repository-root `supabase/migrations/` directory is reserved for QuoteBack and must not be used for this product. Run the CLI commands from the `independent-living/` directory so the correct `supabase/config.toml` and migration folder are selected. The isolated migrations currently prepared are:
 
 - `supabase/migrations/202611260001_independent_living_core.sql`
 - `supabase/migrations/202611260002_independent_living_provider_approval_guard.sql`
