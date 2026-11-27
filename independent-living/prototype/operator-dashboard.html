@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Independent Living Canada — Operator dashboard demo</title>
+<style>
+:root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#172b3a;background:#f4f7f8}
+*{box-sizing:border-box}body{margin:0}header{background:#173b4b;color:#fff;padding:24px max(20px,calc((100% - 1120px)/2))}
+main{max-width:1120px;margin:28px auto;padding:0 18px}.eyebrow{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:#a9d8d4;font-weight:700}
+h1{margin:6px 0;font-size:1.65rem}header p{margin:6px 0 0;color:#d9e7eb}
+.notice{background:#fff4d6;border:1px solid #e7cf83;padding:14px 16px;border-radius:10px;margin-bottom:20px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}
+.stat,.panel{background:white;border:1px solid #dce5e8;border-radius:12px;padding:16px}
+.stat strong{display:block;font-size:1.65rem}.stat span{color:#536873;font-size:.9rem}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}.toolbar input,.toolbar select{padding:11px;border:1px solid #aebfc5;border-radius:8px;background:white;font:inherit}
+.toolbar input{flex:1;min-width:190px}
+table{width:100%;border-collapse:collapse;background:white}th,td{text-align:left;padding:13px 12px;border-bottom:1px solid #e6edef;vertical-align:top}th{font-size:.82rem;color:#526773;background:#f8fafb}
+.pill{display:inline-block;border-radius:20px;padding:4px 9px;font-size:.78rem;font-weight:650;background:#edf1f3}
+.status-new{background:#e4f1ff;color:#164e80}.status-review{background:#fff0cf;color:#79520a}.status-matched{background:#e2f4e9;color:#21623a}
+button{border:1px solid #9bb0b8;background:white;border-radius:7px;padding:7px 10px;font:inherit;cursor:pointer;color:#173b4b}
+button:focus,input:focus,select:focus{outline:3px solid #75b8d0;outline-offset:2px}
+.small{font-size:.86rem;color:#526773}.actions{display:flex;gap:6px;flex-wrap:wrap}
+@media(max-width:700px){.stats{grid-template-columns:repeat(2,1fr)}.table-wrap{overflow-x:auto}table{min-width:720px}}
+</style>
+</head>
+<body>
+<header><div class="eyebrow">Independent Living Canada · Internal concept</div><h1>Support coordination</h1><p>Operator workspace · Winnipeg pilot demonstration</p></header>
+<main>
+<div class="notice"><strong>Demonstration only.</strong> These are fictional sample requests. This page is not connected to a database, does not receive customer information and cannot contact providers or confirm bookings. Do not enter real personal or health information.</div>
+<section class="stats" aria-label="Sample request totals">
+<div class="stat"><strong id="total">4</strong><span>Sample requests</span></div><div class="stat"><strong id="new">2</strong><span>New requests</span></div><div class="stat"><strong id="review">1</strong><span>Under review</span></div><div class="stat"><strong id="matched">1</strong><span>Provider matched</span></div>
+</section>
+<section class="panel">
+<h2 style="margin:0">Request queue</h2><p class="small">Use the search and status filter to explore the sample workflow. Status changes stay in this browser demo only.</p>
+<div class="toolbar"><label class="small" for="search">Search requests</label><input id="search" type="search" placeholder="Search service, area or reference"><label class="small" for="filter">Status</label><select id="filter"><option value="all">All statuses</option><option value="New">New</option><option value="Under review">Under review</option><option value="Provider matched">Provider matched</option></select></div>
+<div class="table-wrap"><table><thead><tr><th>Reference</th><th>Requested support</th><th>Area</th><th>Preferred date</th><th>Status</th><th>Demo action</th></tr></thead><tbody id="rows"></tbody></table></div>
+</section>
+<section class="panel" style="margin-top:18px"><h2 style="margin-top:0">Safe handling checklist</h2><ul><li>Confirm the person receiving support has agreed to the request and any family involvement.</li><li>Verify provider identity, references, insurance and any required licences before referrals.</li><li>Share only the minimum information needed for a provider to respond.</li><li>Keep emergency, clinical and personal-care needs outside this initial non-medical pilot.</li><li>Record complaints, incidents, cancellations and consent changes through an approved secure process.</li></ul></section>
+<p class="small">No real customer records, provider approvals, payments or bookings are represented here.</p>
+</main>
+<script>
+const items=[
+{ref:"DEMO-101",service:"Accessible transportation",area:"St. Vital",date:"Sample: Dec 2",status:"New"},
+{ref:"DEMO-102",service:"Grocery and essential errands",area:"St. James",date:"Sample: Dec 3",status:"New"},
+{ref:"DEMO-103",service:"Companionship visit",area:"River Heights",date:"Sample: Dec 4",status:"Under review"},
+{ref:"DEMO-104",service:"Home accessibility assessment",area:"Transcona",date:"Sample: Dec 5",status:"Provider matched"}
+];
+const labels={"New":"status-new","Under review":"status-review","Provider matched":"status-matched"};
+function render(){
+ const q=document.getElementById("search").value.toLowerCase(), f=document.getElementById("filter").value;
+ const filtered=items.filter(x=>(f==="all"||x.status===f)&&[x.ref,x.service,x.area].join(" ").toLowerCase().includes(q));
+ document.getElementById("rows").innerHTML=filtered.map(x=>'<tr><td><strong>'+x.ref+'</strong></td><td>'+x.service+'</td><td>'+x.area+'</td><td>'+x.date+'</td><td><span class="pill '+labels[x.status]+'">'+x.status+'</span></td><td><div class="actions"><button type="button" data-ref="'+x.ref+'" data-next="Under review">Review</button><button type="button" data-ref="'+x.ref+'" data-next="Provider matched">Mark matched</button></div></td></tr>').join("")||'<tr><td colspan="6">No matching sample requests.</td></tr>';
+ document.getElementById("total").textContent=items.length;
+ document.getElementById("new").textContent=items.filter(x=>x.status==="New").length;
+ document.getElementById("review").textContent=items.filter(x=>x.status==="Under review").length;
+ document.getElementById("matched").textContent=items.filter(x=>x.status==="Provider matched").length;
+}
+document.getElementById("rows").addEventListener("click",e=>{const b=e.target.closest("button[data-ref]");if(!b)return;const item=items.find(x=>x.ref===b.dataset.ref);if(item){item.status=b.dataset.next;render()}});
+document.getElementById("search").addEventListener("input",render);
+document.getElementById("filter").addEventListener("change",render);
+render();
+</script>
+</body></html>
