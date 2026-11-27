@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#173b35">
+<meta name="description" content="Find practical local support for everyday independence.">
+<title>Independent Living Canada — Everyday support</title>
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="brand" href="./" aria-label="Independent Living Canada home">Independent Living <span>Canada</span></a>
+  <nav aria-label="Main navigation"><a href="#services">Services</a><a href="#how">How it works</a><a href="#account">My account</a></nav>
+  <button class="button button-small button-outline" id="signOutButton" hidden type="button">Sign out</button>
+</header>
+<main>
+<section class="hero">
+  <div class="hero-copy">
+    <p class="eyebrow">Practical help, closer to home</p>
+    <h1>More independence.<br>Less worry for families.</h1>
+    <p class="lead">Find local support for the everyday things that help older adults and people with disabilities live safely, comfortably and connected to their communities.</p>
+    <a class="button" href="#account">Get started</a>
+  </div>
+  <aside class="hero-aside">
+    <p class="eyebrow">Everyday support</p>
+    <div class="service-mini"><span aria-hidden="true">🚐</span><div><b>Accessible rides</b><small>Non-emergency transportation</small></div></div>
+    <div class="service-mini"><span aria-hidden="true">🤝</span><div><b>Companionship</b><small>Visits and social outings</small></div></div>
+    <div class="service-mini"><span aria-hidden="true">🛒</span><div><b>Errands and groceries</b><small>Everyday practical help</small></div></div>
+    <div class="service-mini"><span aria-hidden="true">🏡</span><div><b>Help at home</b><small>Light household assistance</small></div></div>
+    <div class="service-mini"><span aria-hidden="true">🛠️</span><div><b>Home accessibility</b><small>Ramps, grab bars and modifications</small></div></div>
+  </aside>
+</section>
+
+<section class="section" id="services">
+  <p class="eyebrow">What you can request</p><h2>Everyday support, all in one place</h2>
+  <div class="service-grid">
+    <article class="service-card"><span>🚐</span><h3>Accessible transportation</h3><p>Non-emergency rides to appointments, shopping and community activities. Mobility arrangements are discussed before any booking.</p></article>
+    <article class="service-card"><span>🤝</span><h3>Companionship</h3><p>Friendly visits, social outings and scheduled check-ins to help people stay connected.</p></article>
+    <article class="service-card"><span>🛒</span><h3>Errands and groceries</h3><p>Help with shopping, deliveries, returns and other everyday tasks.</p></article>
+    <article class="service-card"><span>🧹</span><h3>Household assistance</h3><p>Light housekeeping, laundry and other practical non-clinical help at home.</p></article>
+    <article class="service-card"><span>🛠️</span><h3>Home accessibility</h3><p>Connect with contractors for ramps, grab bars, safer bathrooms and other modifications.</p></article>
+  </div>
+</section>
+
+<section class="section how" id="how">
+  <p class="eyebrow">Designed to be simple</p><h2>From “we need a hand” to a plan</h2>
+  <div class="steps">
+    <article><b class="step-number">1</b><h3>Tell us what would help</h3><p>Choose a service, share your community and describe the practical task.</p></article>
+    <article><b class="step-number">2</b><h3>We review your request</h3><p>Our initial pilot uses human review. Provider matching is not automated.</p></article>
+    <article><b class="step-number">3</b><h3>Coordinate next steps</h3><p>When suitable, options can be shared for you to review before you decide.</p></article>
+  </div>
+</section>
+
+<section class="section account-section" id="account">
+  <p class="eyebrow">Your secure account</p><h2>Get started or sign in</h2>
+  <p class="section-intro">Create an account to submit a request or apply as a local service provider. You can use the same account for both.</p>
+
+  <div class="config-panel" id="configPanel">
+    <h3>Connect the service</h3>
+    <p>One-time setup for this browser. The publishable key is designed for browser use; never enter a service-role or secret key here.</p>
+    <form id="configForm" class="form-grid">
+      <label>Supabase project URL<input id="projectUrl" type="url" value="https://zrrmqrmedgfgbejhagcc.supabase.co" required autocomplete="url"></label>
+      <label>Supabase publishable key<input id="publishableKey" type="password" placeholder="sb_publishable_…" required autocomplete="off"></label>
+      <button class="button" type="submit">Connect this browser</button>
+    </form>
+  </div>
+
+  <div id="accountArea" hidden>
+    <div class="signed-in-bar"><div><small>Signed in as</small><strong id="signedInEmail"></strong></div><span class="status-dot">Connected</span></div>
+    <div class="tabs" role="tablist" aria-label="Account sections">
+      <button class="tab active" role="tab" aria-selected="true" aria-controls="requestsPanel" id="requestsTab" type="button">My requests</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="newRequestPanel" id="newRequestTab" type="button">Request support</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="providerPanel" id="providerTab" type="button">Provider application</button>
+    </div>
+    <section class="tab-panel" id="requestsPanel" role="tabpanel" aria-labelledby="requestsTab">
+      <h3>Your service requests</h3><p class="muted">Only requests belonging to your signed-in account are shown here.</p>
+      <div id="requestList" class="request-list"><p class="muted">Loading your requests…</p></div>
+    </section>
+    <section class="tab-panel" id="newRequestPanel" role="tabpanel" aria-labelledby="newRequestTab" hidden>
+      <h3>Request practical support</h3>
+      <div class="notice"><b>Please note:</b> This service is for non-emergency, non-clinical assistance only. Do not include diagnoses, medications, health-card numbers or medical records. For emergencies call 911.</div>
+      <form id="requestForm" class="form-grid">
+        <label>Type of support<select name="category" required><option value="">Choose a service</option><option value="non_emergency_transport">Accessible, non-emergency ride</option><option value="companionship">Companionship or social visit</option><option value="errands_groceries">Errands or groceries</option><option value="light_household_help">Light household assistance</option><option value="home_accessibility">Home accessibility modification</option></select></label>
+        <div class="two-col"><label>City or community<input name="city" value="Winnipeg" maxlength="100" required></label><label>Neighbourhood or area (optional)<input name="service_area" maxlength="100"></label></div>
+        <div class="two-col"><label>Preferred date (optional)<input name="preferred_date" type="date"></label><label>Preferred time<select name="preferred_time_window"><option value="">No preference</option><option>Morning</option><option>Afternoon</option><option>Evening</option></select></label></div>
+        <label>What practical help is needed?<textarea name="description" maxlength="1200" required placeholder="Describe the task, location details and what you need help with."></textarea></label>
+        <label>Accessibility or mobility arrangements (optional)<textarea name="accessibility_logistics" maxlength="600" placeholder="For example: wheelchair-accessible vehicle, step-free access or help carrying groceries."></textarea></label>
+        <label>Name of person receiving the service (optional)<input name="recipient_name" maxlength="100"></label>
+        <hr>
+        <h4>How should we contact you?</h4>
+        <label>Your name<input name="contact_name" maxlength="100" required autocomplete="name"></label>
+        <div class="two-col"><label>Email<input name="contact_email" type="email" maxlength="254" autocomplete="email"></label><label>Phone<input name="contact_phone" type="tel" maxlength="40" autocomplete="tel"></label></div>
+        <label>Preferred contact method<select name="preferred_contact_method" required><option value="email">Email</option><option value="phone">Phone</option></select></label>
+        <label class="check-label"><input type="checkbox" name="consent" required><span>I confirm I have permission to submit this request and understand this is not an emergency, medical or personal-care service.</span></label>
+        <button class="button" type="submit">Submit service request</button>
+      </form>
+    </section>
+    <section class="tab-panel" id="providerPanel" role="tabpanel" aria-labelledby="providerTab" hidden>
+      <h3>Apply as a local service provider</h3>
+      <div class="notice"><b>Provider approval is not automatic.</b> Applications are pending until identity, references, insurance, licensing and category-specific safety checks are reviewed. Submitting this form does not make you an approved provider or create a public listing.</div>
+      <div id="providerStatus" class="provider-status" hidden></div>
+      <form id="providerForm" class="form-grid">
+        <label>Your name or public contact name<input name="display_name" maxlength="100" required></label>
+        <label>Business or organization name (optional)<input name="business_name" maxlength="150"></label>
+        <div class="two-col"><label>Contact email<input name="contact_email" type="email" maxlength="254" required></label><label>Contact phone (optional)<input name="contact_phone" type="tel" maxlength="40"></label></div>
+        <label>Services you offer<select name="categories" multiple required size="5"><option value="non_emergency_transport">Non-emergency transportation</option><option value="companionship">Companionship</option><option value="errands_groceries">Errands and groceries</option><option value="light_household_help">Light household assistance</option><option value="home_accessibility">Home accessibility</option></select><small class="field-help">On a phone, tap to select one or more services. Use Ctrl or Command on a computer for multiple selections.</small></label>
+        <label>Service area<input name="service_area" maxlength="100" placeholder="e.g. Winnipeg and nearby communities" required></label>
+        <label>Describe your service and limits<textarea name="service_description" maxlength="1200" required></textarea></label>
+        <label class="check-label"><input type="checkbox" name="providerAgreement" required><span>I understand this is an application only and I must not claim approval until verification is complete.</span></label>
+        <button class="button" type="submit">Submit provider application</button>
+      </form>
+    </section>
+  </div>
+</section>
+</main>
+<footer class="site-footer"><p><b>Independent Living Canada</b> · Working project name; not yet legally or trademark cleared.</p><p>This initial release does not provide emergency response, ambulance or medical transport, nursing, medication assistance or personal care. Service availability depends on verified local providers. Family access and provider matching are not yet enabled.</p><p><a href="https://github.com/tritchot666/QuoteBack/tree/independent-living-mvp/independent-living">Project and safety information</a></p></footer>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script type="module" src="./app.js"></script>
+</body></html>
